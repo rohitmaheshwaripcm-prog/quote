@@ -28,14 +28,12 @@
     <span class="tab active" onclick="switchTab('form')">Quotation Form</span>
     <span class="tab" onclick="switchTab('records')">Saved Records</span>
   </div>
-
   <div id="formTab">
     <div class="form-section">
       <label>Name of Guest</label>
       <input type="text" id="guestName" placeholder="Name of Guest" />
       <label>Phone Number</label>
       <input type="tel" id="phoneNumber" placeholder="Phone Number" />
-
       <div class="row">
         <div>
           <label>Check-In Date</label>
@@ -46,24 +44,20 @@
           <input type="date" id="checkOutDate" />
         </div>
       </div>
-
       <div class="row">
         <div><label>Adults</label><input type="number" id="adults" min="0" /></div>
         <div><label>Children</label><input type="number" id="children" min="0" /></div>
       </div>
-
       <div class="row">
         <div><label>Adult Extra Rate</label><input type="number" id="extraAdultRate" min="0" /></div>
         <div><label>Child Extra Rate</label><input type="number" id="extraChildRate" min="0" /></div>
       </div>
-
       <div class="row">
         <div><label>Deluxe Rooms</label><input type="number" id="deluxeRooms" min="0" /></div>
         <div><label>Deluxe Rate</label><input type="number" id="deluxeRate" min="0" /></div>
         <div><label>Super Deluxe Rooms</label><input type="number" id="superDeluxeRooms" min="0" /></div>
         <div><label>Super Deluxe Rate</label><input type="number" id="superDeluxeRate" min="0" /></div>
       </div>
-
       <label>Plan</label>
       <select id="plan">
         <option value="EP">EP - Room Only</option>
@@ -71,7 +65,6 @@
         <option value="MAP">MAP - Room + Breakfast + one Meal (Lunch/Dinner)</option>
         <option value="AP">AP - Room + Breakfast + Lunch + Dinner</option>
       </select>
-
       <label>Pick-Up Charges</label>
       <input type="number" id="pickupRate" min="0" />
       <label>Drop Charges</label>
@@ -80,7 +73,6 @@
       <input type="number" id="sightseeingRate" min="0" />
       <label>Other Extras</label>
       <input type="number" id="extras" min="0" />
-
       <label>Select GST</label>
       <div class="row" style="max-width: 350px;">
         <button type="button" onclick="setGST(0, this)">None</button>
@@ -90,7 +82,6 @@
     </div>
     <button onclick="generateAndSaveQuotation()">Generate Quotation &amp; Share on WhatsApp</button>
   </div>
-
   <div id="recordsTab" class="hidden">
     <h3>Saved Quotations</h3>
     <table>
@@ -102,10 +93,8 @@
       <tbody id="recordsBody"></tbody>
     </table>
   </div>
-
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7y4Jhy1OugroUMDQNTT_zyp8jeNq5FXoICxA4buzOCPOh6-u989wSLTOde4uaMXw/exec";
-
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxn9eh8CWdubKL2yJzkl4ayc5aOL0lURk6e87nmL-I9YT1iUfr-RT1fqOqhjN-vY5Co/exec";
     let gstRate = 0, lastGSTBtn = null;
     const planText = {
       "EP": "Room Only",
@@ -113,14 +102,12 @@
       "MAP": "Room + Breakfast + one Meal (Lunch/Dinner)",
       "AP": "Room + Breakfast + Lunch + Dinner"
     };
-
     function setGST(rate, btn) {
       gstRate = rate;
       if (lastGSTBtn) lastGSTBtn.classList.remove("gst-selected");
       btn.classList.add("gst-selected");
       lastGSTBtn = btn;
     }
-
     function switchTab(tab) {
       document.getElementById('formTab').classList.toggle('hidden', tab !== 'form');
       document.getElementById('recordsTab').classList.toggle('hidden', tab !== 'records');
@@ -128,14 +115,12 @@
       document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
       if (tab === 'records') displayRecords();
     }
-
     function getNights() {
       const inD = new Date(document.getElementById('checkInDate').value);
       const outD = new Date(document.getElementById('checkOutDate').value);
       const diff = (outD - inD) / (1000*3600*24);
       return diff > 0 ? diff : 1;
     }
-
     function generateAndSaveQuotation() {
       const guest = document.getElementById('guestName').value || "Guest";
       const phone = document.getElementById('phoneNumber').value;
@@ -156,12 +141,10 @@
       const sightseeing = +document.getElementById('sightseeingRate').value||0;
       const extras = +document.getElementById('extras').value||0;
       const plan = document.getElementById('plan').value;
-
       const totalRooms = dRooms + sdRooms;
       const includedAdults = totalRooms*2;
       const extraAdultCount = Math.max(0, adults - includedAdults);
       const extraChildCount = children;
-
       const roomTotal = (dRooms*dRate + sdRooms*sdRate) * nights;
       const extraAdultTotal = extraAdultCount*eaRate*nights;
       const extraChildTotal = extraChildCount*ecRate*nights;
@@ -170,7 +153,6 @@
       const addonTotal = pickup + drop + sightseeing + extras;
       const gstAmount = Math.round((roomTariff+addonTotal)*gstRate);
       const grandTotal = roomTariff + addonTotal + gstAmount;
-
       const shareMsg = `Hotel Pachmarhi – Quotation\n\n` +
 `Name: ${guest}\nPhone: ${phone}\nStay: ${new Date(inDate).toDateString()} to ${new Date(outDate).toDateString()} (${nights} nights)\n` +
 `Rooms: Deluxe × ${dRooms} @ ₹${dRate}, Super Deluxe × ${sdRooms} @ ₹${sdRate}\nTotal Rooms: ${totalRooms}\nPersons: ${adults} Adult(s), ${children} Child(ren)\n\n` +
@@ -180,7 +162,6 @@
 `Addons:\n- Pick-up ₹${pickup}\n- Drop ₹${drop}\n- Sightseeing ₹${sightseeing}\n- Other ₹${extras}\n\n` +
 `Total Addons: ₹${addonTotal}\nGST (${gstRate*100}%): ₹${gstAmount}\nGrand Total: ₹${grandTotal}\n\n` +
 `Guidelines / Cancellation:\n• Check-in Time :- 12 Noon\n• Check-out Time:- 11 AM\n• Outstanding amount should be paid at the time of check in.\n• Early check-in and late check-out are subject to availability and may be chargeable.\n• Cancellation Policy\n15 Days or Above- Full Refund\n7-14 days -25% Cancellation Charges\n3-6 days-50% Cancellation Charge\nBelow 3 days - No refund`;
-
       const record = {
         guestName: guest,
         phone: phone,
@@ -190,7 +171,6 @@
         gstAmount: gstAmount,
         grandTotal: "₹"+grandTotal
       };
-
       fetch(WEBAPP_URL,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
@@ -203,7 +183,6 @@
       })
       .catch(err=>alert("Error saving to Google Sheet: "+err.message));
     }
-
     function displayRecords() {
       fetch(WEBAPP_URL)
       .then(r=>r.json())
