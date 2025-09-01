@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hotel Quotation – Hotel Pachmarhi</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+    h2 { color: #2e7d32; margin-bottom: 20px; }
+    .form-section { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select { box-sizing: border-box; display: block; width: 100%; margin-bottom: 15px; padding: 8px; font-size: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+    .row > div { flex: 1; min-width: 150px; }
+    button { background-color: #2e7d32; color: white; border: none; cursor: pointer; padding: 10px 20px; margin-bottom: 15px; }
+    .gst-selected { background-color: #1b5e20 !important; }
+    .tab { cursor: pointer; padding: 10px; background: #ddd; margin-right: 5px; border-radius: 5px 5px 0 0; }
+    .tab.active { background: #2e7d32; color: #fff; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #aaa; padding: 6px; text-align: left; }
+    th { background: #e0f2f1; }
+  </style>
+</head>
+<body>
+  <h2>Hotel Quotation – Hotel Pachmarhi</h2>
+  <div>
+    <span class="tab active" onclick="switchTab('form')">Quotation Form</span>
+    <span class="tab" onclick="switchTab('records')">Saved Records</span>
+  </div>
+
+  <div id="formTab">
+    <div class="form-section">
+      <label>Name of Guest</label>
+      <input type="text" id="guestName" placeholder="Name of Guest" />
+      <label>Phone Number</label>
+      <input type="tel" id="phoneNumber" placeholder="Phone Number" />
+
+      <div class="row">
+        <div>
+          <label>Check-In Date</label>
+          <input type="date" id="checkInDate" />
+        </div>
+        <div>
+          <label>Check-Out Date</label>
+          <input type="date" id="checkOutDate" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div><label>Adults</label><input type="number" id="adults" min="0" /></div>
+        <div><label>Children</label><input type="number" id="children" min="0" /></div>
+      </div>
+
+      <div class="row">
+        <div><label>Adult Extra Rate</label><input type="number" id="extraAdultRate" min="0" /></div>
+        <div><label>Child Extra Rate</label><input type="number" id="extraChildRate" min="0" /></div>
+      </div>
+
+      <div class="row">
+        <div><label>Deluxe Rooms</label><input type="number" id="deluxeRooms" min="0" /></div>
+        <div><label>Deluxe Rate</label><input type="number" id="deluxeRate" min="0" /></div>
+        <div><label>Super Deluxe Rooms</label><input type="number" id="superDeluxeRooms" min="0" /></div>
+        <div><label>Super Deluxe Rate</label><input type="number" id="superDeluxeRate" min="0" /></div>
+      </div>
+
+      <label>Plan</label>
+      <select id="plan">
+        <option value="EP">EP - Room Only</option>
+        <option value="CP">CP - Including Breakfast</option>
+        <option value="MAP">MAP - Room + Breakfast + one Meal (Lunch/Dinner)</option>
+        <option value="AP">AP - Room + Breakfast + Lunch + Dinner</option>
+      </select>
+
+      <label>Pick-Up Charges</label>
+      <input type="number" id="pickupRate" min="0" />
+      <label>Drop Charges</label>
+      <input type="number" id="dropRate" min="0" />
+      <label>Sightseeing Charges</label>
+      <input type="number" id="sightseeingRate" min="0" />
+      <label>Other Extras</label>
+      <input type="number" id="extras" min="0" />
+
+      <label>Select GST</label>
+      <div class="row" style="max-width: 350px;">
+        <button type="button" onclick="setGST(0, this)">None</button>
+        <button type="button" onclick="setGST(0.05, this)">5%</button>
+        <button type="button" onclick="setGST(0.12, this)">12%</button>
+      </div>
+    </div>
+    <button onclick="generateAndSaveQuotation()">Generate Quotation &amp; Share on WhatsApp</button>
+  </div>
+
+  <div id="recordsTab" class="hidden">
+    <h3>Saved Quotations</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Guest Name</th><th>Phone</th><th>Stay</th><th>Plan</th><th>GST %</th><th>Grand Total</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7y4Jhy1OugroUMDQNTT_zyp8jeNq5FXoICxA4buzOCPOh6-u989wSLTOde4uaMXw/exec";
+
+    let gstRate = 0, lastGSTBtn = null;
+    const planText = {
+      "EP": "Room Only",
+      "CP": "Room + Breakfast",
+      "MAP": "Room + Breakfast + one Meal (Lunch/Dinner)",
+      "AP": "Room + Breakfast + Lunch + Dinner"
+    };
+
+    function setGST(rate, btn) {
+      gstRate = rate;
+      if (lastGSTBtn) lastGSTBtn.classList.remove("gst-selected");
+      btn.classList.add("gst-selected");
+      lastGSTBtn = btn;
+    }
+
+    function switchTab(tab) {
+      document.getElementById('formTab').classList.toggle('hidden', tab !== 'form');
+      document.getElementById('recordsTab').classList.toggle('hidden', tab !== 'records');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+      if (tab === 'records') displayRecords();
+    }
+
+    function getNights() {
+      const inD = new Date(document.getElementById('checkInDate').value);
+      const outD = new Date(document.getElementById('checkOutDate').value);
+      const diff = (outD - inD) / (1000*3600*24);
+      return diff > 0 ? diff : 1;
+    }
+
+    function generateAndSaveQuotation() {
+      const guest = document.getElementById('guestName').value || "Guest";
+      const phone = document.getElementById('phoneNumber').value;
+      const inDate = document.getElementById('checkInDate').value;
+      const outDate = document.getElementById('checkOutDate').value;
+      if (!phone || !inDate || !outDate) return alert("Fill phone and dates properly.");
+      const nights = getNights();
+      const adults = +document.getElementById('adults').value||0;
+      const children = +document.getElementById('children').value||0;
+      const eaRate = +document.getElementById('extraAdultRate').value||0;
+      const ecRate = +document.getElementById('extraChildRate').value||0;
+      const dRooms = +document.getElementById('deluxeRooms').value||0;
+      const dRate = +document.getElementById('deluxeRate').value||0;
+      const sdRooms = +document.getElementById('superDeluxeRooms').value||0;
+      const sdRate = +document.getElementById('superDeluxeRate').value||0;
+      const pickup = +document.getElementById('pickupRate').value||0;
+      const drop = +document.getElementById('dropRate').value||0;
+      const sightseeing = +document.getElementById('sightseeingRate').value||0;
+      const extras = +document.getElementById('extras').value||0;
+      const plan = document.getElementById('plan').value;
+
+      const totalRooms = dRooms + sdRooms;
+      const includedAdults = totalRooms*2;
+      const extraAdultCount = Math.max(0, adults - includedAdults);
+      const extraChildCount = children;
+
+      const roomTotal = (dRooms*dRate + sdRooms*sdRate) * nights;
+      const extraAdultTotal = extraAdultCount*eaRate*nights;
+      const extraChildTotal = extraChildCount*ecRate*nights;
+      const extraPersonTotal = extraAdultTotal+extraChildTotal;
+      const roomTariff = roomTotal + extraPersonTotal;
+      const addonTotal = pickup + drop + sightseeing + extras;
+      const gstAmount = Math.round((roomTariff+addonTotal)*gstRate);
+      const grandTotal = roomTariff + addonTotal + gstAmount;
+
+      const shareMsg = `Hotel Pachmarhi – Quotation\n\n` +
+`Name: ${guest}\nPhone: ${phone}\nStay: ${new Date(inDate).toDateString()} to ${new Date(outDate).toDateString()} (${nights} nights)\n` +
+`Rooms: Deluxe × ${dRooms} @ ₹${dRate}, Super Deluxe × ${sdRooms} @ ₹${sdRate}\nTotal Rooms: ${totalRooms}\nPersons: ${adults} Adult(s), ${children} Child(ren)\n\n` +
+`Extra Person Charges:\n• Adults: ${extraAdultCount} × ₹${eaRate} × ${nights} night(s) = ₹${extraAdultTotal}\n• Children: ${extraChildCount} × ₹${ecRate} × ${nights} night(s) = ₹${extraChildTotal}\nTotal Extra: ₹${extraPersonTotal}\n\n` +
+`Plan: ${plan} (${planText[plan]})\n\n` +
+`Total Room Cost: ₹${roomTotal}\nTotal Cost of Extras (Persons): ₹${extraPersonTotal}\nRoom Tariff (incl. extras): ₹${roomTariff}\n\n` +
+`Addons:\n- Pick-up ₹${pickup}\n- Drop ₹${drop}\n- Sightseeing ₹${sightseeing}\n- Other ₹${extras}\n\n` +
+`Total Addons: ₹${addonTotal}\nGST (${gstRate*100}%): ₹${gstAmount}\nGrand Total: ₹${grandTotal}\n\n` +
+`Guidelines / Cancellation:\n• Check-in Time :- 12 Noon\n• Check-out Time:- 11 AM\n• Outstanding amount should be paid at the time of check in.\n• Early check-in and late check-out are subject to availability and may be chargeable.\n• Cancellation Policy\n15 Days or Above- Full Refund\n7-14 days -25% Cancellation Charges\n3-6 days-50% Cancellation Charge\nBelow 3 days - No refund`;
+
+      const record = {
+        guestName: guest,
+        phone: phone,
+        stay: `${inDate} to ${outDate} (${nights} nights)`,
+        plan: `${plan} (${planText[plan]})`,
+        gst: (gstRate*100)+"%",
+        gstAmount: gstAmount,
+        grandTotal: "₹"+grandTotal
+      };
+
+      fetch(WEBAPP_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(record)
+      })
+      .then(r=>r.json())
+      .then(res=>{
+        console.log("Saved to Google Sheet",res);
+        window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(shareMsg)}`,'_blank');
+      })
+      .catch(err=>alert("Error saving to Google Sheet: "+err.message));
+    }
+
+    function displayRecords() {
+      fetch(WEBAPP_URL)
+      .then(r=>r.json())
+      .then(data=>{
+        const tbody=document.getElementById("recordsBody");
+        tbody.innerHTML="";
+        if(!data.length) return tbody.innerHTML="<tr><td colspan='7'>No records</td></tr>";
+        data.forEach(r=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td>${r.Date||""}</td><td>${r["Guest Name"]||r.guestName}</td><td>${r.Phone||r.phone}</td><td>${r.Stay||r.stay}</td><td>${r.Plan||r.plan}</td><td>${r["GST %"]||r.gst}</td><td>${r["Grand Total"]||r.grandTotal}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
